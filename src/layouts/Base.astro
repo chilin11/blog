@@ -1,0 +1,47 @@
+---
+import '../styles/global.css';
+import { GITHUB_URL } from '../data/projects';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const SITE = 'chilin11 · 造物记';
+const { title, description = 'chilin11 的开源项目与开发记录。把想法写成代码，让日常好用一点。' } = Astro.props;
+const pageTitle = title ? `${title} · 造物记` : SITE;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#101211" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="canonical" href={canonical} />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content={title ? 'article' : 'website'} />
+  <title>{pageTitle}</title>
+</head>
+<body>
+  <header class="site-header container">
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">c/</span>chilin11 · 造物记</a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="/#articles">文章</a>
+      <a href="/#projects">项目</a>
+      <a href="/#about">关于</a>
+      <a href={GITHUB_URL}>GitHub <span class="external" aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main class="container">
+    <slot />
+  </main>
+  <footer class="site-footer container">
+    <span>© {new Date().getFullYear()} chilin11 · 保持好奇，持续造物。</span>
+    <a href={GITHUB_URL}>Find me on GitHub ↗</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="little-play-arcade 开发手记：用简单的静态页面，把小游戏带回打开就能玩的样子。">
+  <title>做一个打开就能玩的小游戏站 · 造物记</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header container">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">c/</span>chilin11 · 造物记</a>
+    <nav class="site-nav" aria-label="主导航"><a href="index.html#articles">文章</a><a href="index.html#projects">项目</a><a href="index.html#about">关于</a><a href="https://github.com/chilin11">GitHub <span class="external" aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main class="container">
+    <article class="post-shell">
+      <a class="back-link" href="index.html#articles">← 返回文章列表</a>
+      <header class="post-header">
+        <div class="post-meta"><time datetime="2026-03-18">2026.03.18</time><span>chilin11</span><span class="tag">开发手记</span><span class="tag">开源</span></div>
+        <h1>做一个打开就能玩的小游戏站</h1>
+        <p class="post-deck">不需要注册，也不需要等构建。用最简单的方式，把「玩一会儿」这件小事做好。</p>
+      </header>
+      <aside class="project-info" aria-label="本文项目">
+        <div class="project-info-top"><span>little-play-arcade</span><a href="https://github.com/chilin11/little-play-arcade">GitHub 仓库 ↗</a></div>
+        <dl><dt>项目简介</dt><dd>「玩一会儿」· 零后端、零构建的静态小游戏聚合站</dd><dt>语言</dt><dd>JavaScript</dd><dt>主要技术</dt><dd>HTML / CSS / JavaScript · Docker · Caddy</dd></dl>
+      </aside>
+      <!-- Sample editorial copy for design reference; verify before publishing. -->
+      <div class="prose">
+        <p>有时候，我只是想在两件事之间玩一局 2048，或者和朋友下盘五子棋。不想下载 App，不想登录，更不想先看一段广告。于是有了这个小项目：<strong>把游戏放在一个页面里，打开就玩。</strong></p>
+        <h2>01. 先把事情做简单</h2>
+        <p>little-play-arcade 把五子棋、2048、扫雷、国际象棋和儿童益智小游戏放在一起。它不是一个庞大的游戏平台，而是浏览器里的一小块休息区。</p>
+        <p>对于这样的工具，简单本身就是功能。我希望它做到：</p>
+        <ul><li><strong>低门槛：</strong>一个链接就能进入，不让准备工作打断兴致。</li><li><strong>容易部署：</strong>静态文件即可运行，不额外维护数据库或 API 服务。</li><li><strong>便于修改：</strong>用熟悉的 HTML、CSS 和 JavaScript，让小改动保持轻量。</li></ul>
+        <blockquote><p>不是每个小想法，都需要从一套复杂的技术栈开始。先让它有用，再决定它需要多复杂。</p></blockquote>
+        <h2>02. 零构建，不代表零设计</h2>
+        <p>没有构建步骤，意味着源码和交付物之间少了一层转换。调整页面后，刷新浏览器就能看到结果。但目录组织、交互一致性和移动端体验，依然值得认真对待。</p>
+        <h3>把部署也变成一件小事</h3>
+        <p>静态站点很适合交给 Caddy 提供服务，再用 Docker 统一运行环境。下面是一个<strong>最小配置示意</strong>，用于说明静态文件的服务方式，并非仓库的完整部署配置：</p>
+        <div class="code-panel">
+          <div class="code-header"><span>Caddyfile</span><span>示意配置</span></div>
+          <pre tabindex="0" aria-label="Caddy 静态文件配置"><code><span class="code-comment"># 将静态站点目录挂载到 /srv</span>
+<span class="code-value">:80</span> {
+    <span class="code-key">root</span> * <span class="code-value">/srv</span>
+    <span class="code-key">encode</span> gzip
+    <span class="code-key">file_server</span>
+}</code></pre>
+        </div>
+        <p>核心只有两件事：用 <code>root</code> 指定站点目录，用 <code>file_server</code> 提供静态文件。真正上线时，还需要根据访问方式配置域名、端口和持久化目录；请以仓库 README 为准。</p>
+        <h2>03. 好玩，也要好用</h2>
+        <p>游戏本身之外，我更关心第一次打开它的人会不会迷路。下一轮体验检查，可以从三个简单的问题开始：</p>
+        <ol><li>能否一眼找到自己想玩的游戏？</li><li>在手机上，按钮是否好点、棋盘是否清楚？</li><li>结束一局之后，能否轻松重来或返回首页？</li></ol>
+        <p>小项目的乐趣在于，每一次微小的改进都能立刻被感受到。如果你也想找个地方「玩一会儿」，欢迎来试试；遇到问题，也欢迎在 GitHub 留下反馈。</p>
+      </div>
+      <section class="post-cta" aria-labelledby="cta-title"><div><h2 id="cta-title">喜欢这个小项目？</h2><p>去 GitHub 看看，点个 Star，或一起改进它。</p></div><a class="button" href="https://github.com/chilin11/little-play-arcade">去 GitHub 看看 <span aria-hidden="true">↗</span></a></section>
+    </article>
+  </main>
+  <footer class="site-footer container"><span>© 2026 chilin11 · 保持好奇，持续造物。</span><a href="https://github.com/chilin11">Find me on GitHub ↗</a></footer>
+</body>
+</html>

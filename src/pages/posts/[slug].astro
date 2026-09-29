@@ -1,0 +1,55 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { findProject, repoUrl, formatDate, isoDate } from '../../data/projects';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const project = findProject(post.data.repo);
+const url = repoUrl(post.data.repo);
+---
+<Base title={post.data.title} description={post.data.description}>
+  <article class:list={['post-shell', project?.variant]}>
+    <a class="back-link" href="/#articles">← 返回文章列表</a>
+    <header class="post-header">
+      <div class="post-meta">
+        <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+        <span>chilin11</span>
+        {post.data.tags.map((t) => <span class="tag">{t}</span>)}
+      </div>
+      <h1>{post.data.title}</h1>
+      <p class="post-deck">{post.data.description}</p>
+    </header>
+
+    <aside class="project-info" aria-label="本文项目">
+      <div class="project-info-top"><span>{post.data.repo}</span><a href={url}>GitHub 仓库 ↗</a></div>
+      {project && (
+        <dl>
+          <dt>项目简介</dt><dd>{project.summary}</dd>
+          <dt>语言</dt><dd>{project.language}</dd>
+          <dt>主要技术</dt><dd>{project.stack.join(' · ')}</dd>
+          {project.extra?.map((e) => (
+            <><dt>{e.label}</dt><dd>{e.href ? <a href={e.href}>{e.value} ↗</a> : e.value}</dd></>
+          ))}
+        </dl>
+      )}
+    </aside>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <section class="post-cta" aria-labelledby="cta-title">
+      <div>
+        <h2 id="cta-title">喜欢这个项目？</h2>
+        <p>去 GitHub 看看，点个 Star，或者一起改进它。</p>
+      </div>
+      <a class="button" href={url}>★ Star on GitHub <span aria-hidden="true">↗</span></a>
+    </section>
+  </article>
+</Base>

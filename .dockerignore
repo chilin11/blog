@@ -1,0 +1,14 @@
+node_modules
+dist
+.astro
+.git
+.github
+.DS_Store
+.env
+.deploy.env
+design
+docker-compose.yml
+Dockerfile
+.dockerignore
+README.md
+deploy.sh

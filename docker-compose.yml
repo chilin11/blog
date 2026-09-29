@@ -1,0 +1,27 @@
+# 博客 + Cloudflare Tunnel。用法：
+#   1. 同目录下创建 .env（参考 .env.example），填入 SITE_URL 和 TUNNEL_TOKEN
+#   2. docker compose up -d
+#   3. 在 Cloudflare Zero Trust 的 Tunnel 里添加 Public Hostname：
+#      你的域名 → Service: HTTP，URL: blog:80
+# 更新到最新版本：docker compose pull && docker compose up -d
+
+services:
+  blog:
+    image: chilin11/blog:latest
+    container_name: blog
+    restart: unless-stopped
+    environment:
+      SITE_URL: ${SITE_URL:-}
+    # 想在本机浏览器直接访问（http://localhost:8080）时取消注释：
+    # ports:
+    #   - "8080:80"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: blog-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?请在 .env 中设置 TUNNEL_TOKEN}
+    depends_on:
+      - blog

@@ -1,10 +1,19 @@
 export const GITHUB_USER = 'chilin11';
 export const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
 
+export const projectCategories = [
+  { id: 'all', label: '全部项目' },
+  { id: 'tools', label: 'AI 与工具' },
+  { id: 'apps', label: '日常应用' },
+  { id: 'web', label: 'Web 实验' },
+] as const;
+
 export interface Project {
   /** GitHub 仓库名，也是文章 frontmatter 里的 repo 字段 */
   repo: string;
   summary: string;
+  category: 'tools' | 'apps' | 'web';
+  featured?: boolean;
   language: string;
   stack: string[];
   /** 对应 CSS 里的项目强调色变体：'' | 'photo' | 'pill' | 'outfit' */
@@ -17,8 +26,41 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    repo: 'cpa-mini-usage',
+    summary: '轻量的 CPA 原生用量面板。查看 Claude / Codex 配额、请求记录和 API 等价费用估算，不需要额外的 Web 服务。',
+    category: 'tools',
+    featured: true,
+    language: 'Go',
+    stack: ['CPA v8 插件', '原生用量面板'],
+    variant: 'outfit',
+    icon: '<path d="M4 4v16h16M8 16v-5M12 16V7M16 16v-8M20 16V4"/>',
+  },
+  {
+    repo: 'PI-Desktop',
+    summary: '本地优先的 AI Agent 桌面工作台。在自己的 Fork 中探索模型接入、插件与开发工作流，让工具更贴合日常使用。',
+    category: 'tools',
+    featured: true,
+    language: 'TypeScript',
+    stack: ['Electron', 'Rust'],
+    variant: 'photo',
+    note: 'Fork · vastsa/PI-Desktop',
+    icon: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 8l3 3-3 3M13 14h4"/>',
+    extra: [{ label: '上游项目', value: 'vastsa/PI-Desktop', href: 'https://github.com/vastsa/PI-Desktop' }],
+  },
+  {
+    repo: 'TaskWhisper',
+    summary: '把「记得提醒我」变成具体计划。用自然语言创建健康提醒，AI 解析后在 Android 本地调度通知。',
+    category: 'apps',
+    language: 'Kotlin',
+    stack: ['Jetpack Compose', 'Room'],
+    variant: 'pill',
+    note: 'MVP',
+    icon: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4M10 8l2 2 3-3"/>',
+  },
+  {
     repo: 'little-play-arcade',
     summary: '「玩一会儿」零后端、零构建的静态小游戏站。从五子棋到 2048，打开就能玩。',
+    category: 'web',
     language: 'JavaScript',
     stack: ['HTML / CSS / JS', 'Docker + Caddy'],
     variant: '',
@@ -27,6 +69,7 @@ export const projects: Project[] = [
   {
     repo: 'HivisionID-X',
     summary: '可自部署的 AI 证件照工作台。智能构图、抠图换底、打印排版，一站完成。',
+    category: 'tools',
     language: 'Python',
     stack: ['FastAPI', 'Docker 多架构镜像'],
     variant: 'photo',
@@ -40,6 +83,7 @@ export const projects: Project[] = [
   {
     repo: 'Pill-O-Clock',
     summary: '简单可靠的 Android 服药闹钟。精确提醒与桌面小组件，让按时吃药少一点操心。',
+    category: 'apps',
     language: 'Kotlin',
     stack: ['Jetpack Compose', 'Material 3'],
     variant: 'pill',
@@ -48,6 +92,7 @@ export const projects: Project[] = [
   {
     repo: 'outfit-iq',
     summary: '拍张照片，听听 AI 的穿搭建议。跨平台的穿搭评分 App，帮你找到今天的好状态。',
+    category: 'apps',
     language: 'TypeScript',
     stack: ['Expo', 'React Native'],
     variant: 'outfit',

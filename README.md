@@ -11,11 +11,68 @@ npm install
 npm run dev        # http://localhost:4321，修改后自动刷新
 npm run build      # 输出到 dist/
 npm run preview    # 预览构建结果
+npm test           # 部署脚本回归测试（不操作真实 Docker / 服务器）
 ```
 
-写新文章：在 `src/content/posts/` 新建一个 `.md` 文件，frontmatter 参考现有文章。项目资料在 `src/data/projects.ts`。
+写新文章：在 `src/content/posts/` 新建一个 `.md` 文件，frontmatter 参考现有文章。
 
-## 部署到 VPS
+### 添加 / 更新项目
+
+项目资料在 `src/data/projects.ts`，首页项目总数与筛选数量自动计算。
+
+- `repo`：GitHub 仓库名，链接自动指向 `chilin11/<repo>`。
+- `summary`、`language`、`stack`：简介与技术栈。
+- `category`：`tools`（AI 与工具）、`apps`（日常应用）、`web`（Web 实验）。
+- `featured: true`：在首页工作台中展示，并标注「近期在做」。
+- `variant`：卡片强调色，支持 `''`、`photo`、`pill`、`outfit`。
+- Fork 用 `note` 标注来源；有文章时，文章的 `repo` 与仓库名一致，首页自动显示「开发手记」入口。
+
+项目列表由本地数据生成，不依赖浏览器访问 GitHub API；新增仓库后按上面补一条数据再部署即可。关闭 JavaScript 时仍显示全部项目。
+
+## 一键部署（推荐：Docker / cloudflared）
+
+需要已安装并运行 **Docker Engine + Docker Compose v2（支持 `up --wait`）**，当前用户有 Docker 访问权限。不需要在服务器安装 Node.js。
+
+### 首次部署
+
+```bash
+git clone https://github.com/chilin11/blog.git
+cd blog
+cp .env.example .env
+# 编辑 .env，把 SITE_URL 换成你的博客公开地址
+./deploy.sh --docker
+```
+
+默认监听 `http://127.0.0.1:8080`，可以让服务器上已有的 cloudflared 或反向代理指向它。`SITE_URL` 只设置 canonical，不会配置 DNS、隧道或 HTTPS。cloudflared 如果也在容器内运行，需按其网络配置连接博客，不能直接用该容器自己的 localhost。
+
+### 日常更新
+
+本地提交并推送修改后，在服务器项目目录执行同一条命令：
+
+```bash
+./deploy.sh --docker
+```
+
+脚本会 `git pull --ff-only` → 校验 Compose → 从当前源码构建镜像 → 启动并等待健康检查通过。不会覆盖 `.env`，不会清理其他容器。源码构建不依赖 Docker Hub 上的 `latest` 镜像。
+
+部署尚未提交的本地代码（不拉取远程）：
+
+```bash
+./deploy.sh --docker --no-pull
+```
+
+常用维护命令：
+
+```bash
+docker compose ps
+docker compose logs --tail=100 blog
+docker compose down     # 停止本站
+./deploy.sh --help
+```
+
+端口冲突时修改 `.env` 中的 `PORT`。需要通过公网 IP 直接访问 HTTP 时，可设 `BIND_HOST=0.0.0.0` 并放行对应端口；默认只监听本机更安全。
+
+## 部署到 VPS（无需 Docker，Caddy 自动 HTTPS）
 
 适用于 Debian / Ubuntu 服务器。部署脚本 `deploy.sh` 会自动安装 Node.js 22 和 [Caddy](https://caddyserver.com)（自动申请并续期 HTTPS 证书），然后构建站点并发布。
 
@@ -69,10 +126,10 @@ git push && ssh root@1.2.3.4 'sudo /opt/blog/deploy.sh'
 
 脚本可以重复运行。如果 `/etc/caddy/Caddyfile` 已经被你手动改过（例如同一台机器上还有其他网站），脚本不会覆盖它，只会打印需要加入的站点配置。
 
-可选环境变量：`WEB_ROOT`（发布目录，默认 `/var/www/blog`）、`SKIP_PULL=1`（跳过 `git pull`）。
+可选环境变量：`WEB_ROOT`（发布目录，默认 `/var/www/blog`）、`SKIP_PULL=1`（跳过 `git pull`，也可用 `--no-pull`）。脚本默认拒绝拉取存在未提交改动的工作区，不会替你强制重置代码。
 
 ### 常见问题
 
 - **HTTPS 打不开 / 证书申请失败**：检查域名是否已解析到本机，80 和 443 端口是否放行；查看日志：`sudo journalctl -u caddy -n 50 --no-pager`。
-- **`git pull` 失败**：服务器上的代码被改过。执行 `cd /opt/blog && sudo git status` 查看；确认改动可以丢弃后执行 `sudo git reset --hard origin/main`。
+- **`git pull` 失败**：执行 `cd /opt/blog && sudo git status`，先提交或备份服务器上的改动，再检查当前分支和远程；仅需部署现有代码时使用 `sudo ./deploy.sh --no-pull`。
 - **回滚到旧版本**：`cd /opt/blog && sudo git checkout <commit>`，再执行 `sudo SKIP_PULL=1 ./deploy.sh`。之后要恢复更新，先执行 `sudo git checkout main`。

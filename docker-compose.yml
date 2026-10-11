@@ -1,17 +1,16 @@
-# 博客容器。用法：
-#   1. （可选）同目录下创建 .env，写入 SITE_URL=https://blog.example.com
-#   2. docker compose up -d
-#   3. 在服务器已有的 cloudflared 里把域名指向 http://localhost:8080
-# 更新到最新版本：docker compose pull && docker compose up -d
+# 从当前代码构建，不依赖 Docker Hub 镜像是否已更新。
+# 首次 / 日常更新：./deploy.sh --docker
+# 已有 cloudflared 可指向 http://127.0.0.1:8080。
 
 services:
   blog:
-    image: chilin11/blog:latest
+    image: chilin11/blog:local
+    build:
+      context: .
     container_name: blog
     restart: unless-stopped
     environment:
       SITE_URL: ${SITE_URL:-}
     ports:
-      # 只监听本机，供 cloudflared 访问，不直接暴露到公网。
-      # 端口被占用时改左边的数字，例如 "127.0.0.1:8090:80"
-      - "127.0.0.1:8080:80"
+      # 默认只监听本机，供 cloudflared / 反向代理访问。
+      - "${BIND_HOST:-127.0.0.1}:${PORT:-8080}:80"

@@ -8,7 +8,7 @@ interface Props {
 }
 
 const SITE = 'chilin11 · 造物记';
-const { title, description = 'chilin11 的开源项目与开发记录。把想法写成代码，让日常好用一点。' } = Astro.props;
+const { title, description = 'chilin11 的项目作品与开发记录。把想法写成代码，让日常好用一点。' } = Astro.props;
 const pageTitle = title ? `${title} · 造物记` : SITE;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---

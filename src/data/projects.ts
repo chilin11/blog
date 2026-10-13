@@ -11,9 +11,13 @@ export const projectCategories = [
 export interface Project {
   /** GitHub 仓库名，也是文章 frontmatter 里的 repo 字段 */
   repo: string;
+  name?: string;
+  /** 私有项目允许展示简介，但不生成 GitHub 源码入口 */
+  private?: boolean;
   summary: string;
   category: 'tools' | 'apps' | 'web';
   featured?: boolean;
+  featuredSummary?: string;
   language: string;
   stack: string[];
   /** 对应 CSS 里的项目强调色变体：'' | 'photo' | 'pill' | 'outfit' */
@@ -30,22 +34,34 @@ export const projects: Project[] = [
     summary: '轻量的 CPA 原生用量面板。查看 Claude / Codex 配额、请求记录和 API 等价费用估算，不需要额外的 Web 服务。',
     category: 'tools',
     featured: true,
+    featuredSummary: '让配额与用量一目了然',
     language: 'Go',
     stack: ['CPA v8 插件', '原生用量面板'],
     variant: 'outfit',
     icon: '<path d="M4 4v16h16M8 16v-5M12 16V7M16 16v-8M20 16V4"/>',
   },
   {
-    repo: 'PI-Desktop',
-    summary: '本地优先的 AI Agent 桌面工作台。在自己的 Fork 中探索模型接入、插件与开发工作流，让工具更贴合日常使用。',
+    repo: 'remotecontrol',
+    name: 'Remote Control',
+    summary: '用浏览器查看和控制自己的电脑桌面。原生画面采集与视频串流，支持键鼠操作；通过可信局域网、HTTPS 或 VPN 访问。',
     category: 'tools',
     featured: true,
-    language: 'TypeScript',
-    stack: ['Electron', 'Rust'],
+    featuredSummary: '把自己的桌面带到浏览器里',
+    language: 'C# / Swift',
+    stack: ['Node.js', 'WebSocket'],
     variant: 'photo',
-    note: 'Fork · vastsa/PI-Desktop',
-    icon: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 8l3 3-3 3M13 14h4"/>',
-    extra: [{ label: '上游项目', value: 'vastsa/PI-Desktop', href: 'https://github.com/vastsa/PI-Desktop' }],
+    icon: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M9 8l6 3-6 3V8Z"/>',
+  },
+  {
+    repo: 'loom-vault',
+    name: 'Loom Vault · 密语',
+    summary: '离线优先的 Android 密码笔记。本地加密保存，支持加密备份、私有云端密文同步，以及设备端生物识别快捷解锁。',
+    category: 'apps',
+    language: 'Java',
+    stack: ['Android', 'Node.js'],
+    variant: 'pill',
+    note: '个人实验 · 未经专业安全审计，请保留独立备份',
+    icon: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 14v3"/>',
   },
   {
     repo: 'TaskWhisper',

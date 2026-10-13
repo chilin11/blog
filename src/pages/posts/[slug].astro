@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 const project = findProject(post.data.repo);
-const url = repoUrl(post.data.repo);
+const url = project?.private ? undefined : repoUrl(post.data.repo);
 ---
 <Base title={post.data.title} description={post.data.description}>
   <article class:list={['post-shell', project?.variant]}>
@@ -27,7 +27,7 @@ const url = repoUrl(post.data.repo);
     </header>
 
     <aside class="project-info" aria-label="本文项目">
-      <div class="project-info-top"><span>{post.data.repo}</span><a href={url}>GitHub 仓库 ↗</a></div>
+      <div class="project-info-top"><span>{project?.name || post.data.repo}</span>{url ? <a href={url}>GitHub 仓库 ↗</a> : <span class="muted">私有项目 · 源码暂不公开</span>}</div>
       {project && (
         <dl>
           <dt>项目简介</dt><dd>{project.summary}</dd>
@@ -47,9 +47,9 @@ const url = repoUrl(post.data.repo);
     <section class="post-cta" aria-labelledby="cta-title">
       <div>
         <h2 id="cta-title">喜欢这个项目？</h2>
-        <p>去 GitHub 看看，点个 Star，或者一起改进它。</p>
+        <p>{url ? '去 GitHub 看看，点个 Star，或者一起改进它。' : '这个项目暂未开放源码，可以回到首页了解其他作品。'}</p>
       </div>
-      <a class="button" href={url}>★ Star on GitHub <span aria-hidden="true">↗</span></a>
+      <a class="button" href={url || '/#projects'}>{url ? '★ Star on GitHub' : '探索其他项目'} <span aria-hidden="true">{url ? '↗' : '→'}</span></a>
     </section>
   </article>
 </Base>

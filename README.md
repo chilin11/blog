@@ -20,16 +20,85 @@ npm test           # 部署脚本回归测试（不操作真实 Docker / 服务�
 
 项目资料在 `src/data/projects.ts`，首页项目总数与筛选数量自动计算。
 
-- `repo`：GitHub 仓库名，链接自动指向 `chilin11/<repo>`。
+- `repo`：仓库标识；公开项目链接自动指向 `chilin11/<repo>`。`name` 可设置页面展示名。
+- `private: true`：只展示经确认的名称与简介，隐藏 GitHub 源码入口；不会改变仓库可见性。请勿在简介中放入凭据、内部地址或未授权公开的信息。
 - `summary`、`language`、`stack`：简介与技术栈。
 - `category`：`tools`（AI 与工具）、`apps`（日常应用）、`web`（Web 实验）。
-- `featured: true`：在首页工作台中展示，并标注「近期在做」。
+- `featured: true`：在首页工作台中展示；`featuredSummary` 为短介绍。私有项目的入口跳到本站介绍卡片。
 - `variant`：卡片强调色，支持 `''`、`photo`、`pill`、`outfit`。
 - Fork 用 `note` 标注来源；有文章时，文章的 `repo` 与仓库名一致，首页自动显示「开发手记」入口。
 
 项目列表由本地数据生成，不依赖浏览器访问 GitHub API；新增仓库后按上面补一条数据再部署即可。关闭 JavaScript 时仍显示全部项目。
 
-## 一键部署（推荐：Docker / cloudflared）
+## VPS 直接运行 GitHub 脚本（无需 git clone / Docker）
+
+在 **Debian / Ubuntu VPS** 上执行，替换成自己的域名：
+
+```bash
+# 缺少 curl 时：sudo apt-get update && sudo apt-get install -y curl ca-certificates
+curl -fsSL https://raw.githubusercontent.com/chilin11/blog/main/install.sh -o /tmp/blog-install.sh && sudo bash /tmp/blog-install.sh blog.example.com
+```
+
+脚本下载 GitHub 最新源码压缩包，自动安装 Node.js 22、rsync 和 Caddy，在 VPS 构建后发布到 `/var/www/blog`，随后清理临时源码。**不安装 Git，不创建 Git 工作区，不需要本地电脑上传。** 平时只运行 Caddy，Node.js 仅在构建时使用。
+
+以后更新，不用再填写域名：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chilin11/blog/main/install.sh -o /tmp/blog-install.sh && sudo bash /tmp/blog-install.sh
+```
+
+无域名时，首次把最后的域名换为 `:80`，用 `http://服务器IP` 访问。用域名时先做好 DNS 解析，并放行 80、443/TCP。脚本记住域名于 `/var/lib/blog-installer/domain`，并阻止同一入口的并发部署。
+
+如果机器内存太小，构建仍可能失败；脚本不会自动创建 swap。现有自定义 Caddyfile 不会被覆盖，只会打印需要加入的站点配置；已有 Web 服务占用端口时不会自动关停。自动 HTTPS 需 Caddy 服务正常运行，初始化通常要求 systemd；无 systemd 时需按脚本提示手动启动。
+
+脚本会以 root 权限安装软件和部署页面，可先检查 `/tmp/blog-install.sh` 内容再运行。下载失败不会执行本地旧脚本。
+
+## 可选：本地构建上传（VPS 只跑 Caddy）
+
+**VPS 不需要 Docker、Node.js 或 Git。** 在你的本地电脑（macOS / Linux，或 Windows 的 WSL）运行 `deploy-static.sh`，它在本地构建并通过 SSH 上传静态文件。
+
+### 首次部署
+
+本地需要 Node.js ≥22.12、npm、SSH / SCP 与 tar。VPS 自动初始化支持 Debian / Ubuntu + systemd；SSH 用户使用 root，或可免密码 sudo 的普通用户。
+
+```bash
+# 在本地电脑执行，不是在 VPS 上执行
+git clone https://github.com/chilin11/blog.git
+cd blog
+./deploy-static.sh --setup root@服务器IP https://blog.example.com
+```
+
+已有本地项目目录时直接运行最后一条命令即可。脚本会本地安装依赖与构建，在 VPS 缺少 Caddy 时通过 apt 安装，只追加本站配置。配置校验失败时会恢复原文件。若已有同域名站点，请先整理对应 Caddy 配置，避免重复定义。
+
+使用域名前需将 DNS 指向 VPS，并放行 80、443/TCP。没有域名时可以先用 HTTP：
+
+```bash
+./deploy-static.sh --setup root@服务器IP http://服务器IP
+```
+
+如果 nginx / Apache 已占用 80、443 端口，请先确认用途并配置共存或切换，脚本不会替你关闭其他服务。
+
+### 以后更新：同一条命令
+
+在本地修改好项目后执行：
+
+```bash
+./deploy-static.sh
+```
+
+首次成功后，将 SSH 地址、站点地址和端口保存到本地 `.deploy-static.env`（已加入 gitignore，不存密码或私钥）。更新不需要重启 Caddy，也不会自动 git pull / push；部署的是当前本地代码。
+
+自定义 SSH 端口：
+
+```bash
+./deploy-static.sh --setup --port 2222 root@服务器IP https://blog.example.com
+```
+
+SSH 密钥、别名和跳板机可配置在 `~/.ssh/config`。使用密码登录时，多次连接可能分别提示密码，推荐 SSH 密钥。查看参数：`./deploy-static.sh --help`。
+
+文件发布在 `/var/www/blog-static`，用 `current` 软链接切换，保留最近两个发布目录。日常更新构建或上传失败时，不切换正在服务的版本。首次初始化后、上传完成前，可能暂时显示 404。
+
+## Docker / cloudflared 部署（仅适用于已有 Docker 的服务器）
 
 需要已安装并运行 **Docker Engine + Docker Compose v2（支持 `up --wait`）**，当前用户有 Docker 访问权限。不需要在服务器安装 Node.js。
 
@@ -72,7 +141,7 @@ docker compose down     # 停止本站
 
 端口冲突时修改 `.env` 中的 `PORT`。需要通过公网 IP 直接访问 HTTP 时，可设 `BIND_HOST=0.0.0.0` 并放行对应端口；默认只监听本机更安全。
 
-## 部署到 VPS（无需 Docker，Caddy 自动 HTTPS）
+## VPS 上直接构建（无需 Docker，但需安装 Node.js）
 
 适用于 Debian / Ubuntu 服务器。部署脚本 `deploy.sh` 会自动安装 Node.js 22 和 [Caddy](https://caddyserver.com)（自动申请并续期 HTTPS 证书），然后构建站点并发布。
 

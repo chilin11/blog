@@ -3,4 +3,5 @@ dist/
 .astro/
 .DS_Store
 .deploy.env
+.deploy-static.env
 .env

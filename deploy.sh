@@ -8,7 +8,7 @@
 # 查看帮助：./deploy.sh --help
 #
 # 脚本会做这些事（重复运行是安全的）：
-#   1. 缺少时安装 git / rsync / Node.js 22 / Caddy
+#   1. 缺少时安装 rsync / Node.js 22 / Caddy（Git 模式才需要 git）
 #   2. git pull 拉取最新代码
 #   3. npm ci && npm run build
 #   4. 把 dist/ 同步到 /var/www/blog
@@ -61,7 +61,11 @@ pull_code() {
     log "git pull --ff-only"
     git pull --ff-only || die "git pull 失败，请检查分支、网络和 git status；可用 --no-pull 部署当前代码"
   fi
-  log "当前版本：$(git log -1 --format='%h %s' 2>/dev/null || echo unknown)"
+  if command -v git >/dev/null && [ -d "$REPO_DIR/.git" ]; then
+    log "当前版本：$(git log -1 --format='%h %s' 2>/dev/null || echo unknown)"
+  else
+    log "当前版本：GitHub 源码压缩包（无 Git 工作区）"
+  fi
 }
 
 if [ "$MODE" = docker ]; then
@@ -119,7 +123,8 @@ apt_install() {
 }
 
 missing=()
-for bin in git rsync curl gpg; do command -v "$bin" >/dev/null || missing+=("$bin"); done
+for bin in rsync curl gpg; do command -v "$bin" >/dev/null || missing+=("$bin"); done
+if [ "${SKIP_PULL:-0}" != 1 ] && ! command -v git >/dev/null; then missing+=(git); fi
 if [ "${#missing[@]}" -gt 0 ]; then
   log "安装基础工具：${missing[*]}"
   pkgs=("${missing[@]/gpg/gnupg}")
@@ -150,7 +155,7 @@ if ! command -v caddy >/dev/null; then
 fi
 
 # ---------- 2. 拉取代码 ----------
-git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
+if [ "${SKIP_PULL:-0}" != 1 ]; then git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true; fi
 pull_code
 
 # ---------- 3. 构建 ----------
